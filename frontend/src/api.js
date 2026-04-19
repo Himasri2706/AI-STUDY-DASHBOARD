@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:5000',
+    baseURL: 'https://ai-study-dashboard-mzx2.onrender.com',
 });
 
 // Interceptor to add JWT token
