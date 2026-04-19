@@ -24,6 +24,11 @@
 
 ---
 
+## 🎥 Walkthrough Demo
+![Application Walkthrough](./assets/walkthrough.webp)
+
+---
+
 ## 🛠️ Technology Stack
 ### 🖥️ Frontend
 - **Framework & Tooling**: React, Vite
