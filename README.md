@@ -3,6 +3,8 @@
   <h1>AI Study Dashboard 🧠📚</h1>
   <p><strong>A Next-Gen Retrieval-Augmented Generation (RAG) Platform for Subject-Specific Learning</strong></p>
   
+  <h3>🌐 <a href="https://ai-study-dashboard-gamma.vercel.app/">Live Web Demonstration</a> 🌐</h3>
+  
   [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
   [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
   [![Flask](https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
