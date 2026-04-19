@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --color-prime: #0f172a;
+  --color-sec: #1e293b;
+  --color-accent: #3b82f6;
+}
+
+@layer base {
+  body {
+    @apply bg-prime text-white antialiased selection:bg-accent selection:text-white min-h-screen font-sans;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-sec/50 backdrop-blur-md border border-white/10 shadow-xl;
+  }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #3b82f6;
+  border-radius: 20px;
+}
