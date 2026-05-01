@@ -1,34 +1,73 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, User, KeyRound } from 'lucide-react';
+import { Lock, Mail, KeyRound, CheckCircle } from 'lucide-react';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
 
 export default function Auth() {
     const [isLogin, setIsLogin] = useState(true);
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('user'); // For signup only
+    const [otp, setOtp] = useState('');
+    const [otpSent, setOtpSent] = useState(false);
     const [error, setError] = useState('');
+    const [msg, setMsg] = useState('');
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
+
+    const handleSendOtp = async () => {
+        if (!email) {
+            setError('Please enter your email first.');
+            return;
+        }
+        setError('');
+        setMsg('');
+        try {
+            const res = await api.post('/auth/send-otp', { email });
+            setOtpSent(true);
+            setMsg(res.data.message);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to send OTP');
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setMsg('');
         try {
             if (isLogin) {
-                const res = await api.post('/auth/login', { username, password });
-                login(res.data.token, res.data.role, res.data.username);
-                navigate('/');
+                const res = await api.post('/auth/login', { email, password });
+                login(res.data.token, res.data.role, res.data.email);
+                
+                if (res.data.role === 'admin') {
+                    navigate('/admin');
+                } else {
+                    navigate('/');
+                }
             } else {
-                await api.post('/auth/signup', { username, password, role });
+                if (!otpSent) {
+                    setError('Please verify your email first.');
+                    return;
+                }
+                await api.post('/auth/signup', { email, password, role, otp });
                 setIsLogin(true);
-                setError('Signup successful! Please login.');
+                setOtpSent(false);
+                setOtp('');
+                setMsg('Signup successful! Please login.');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Authentication failed');
         }
+    };
+
+    const switchMode = () => {
+        setIsLogin(!isLogin);
+        setError('');
+        setMsg('');
+        setOtpSent(false);
+        setOtp('');
     };
 
     return (
@@ -50,17 +89,23 @@ export default function Auth() {
                         {error}
                     </div>
                 )}
+                {msg && (
+                    <div className="mb-4 p-3 rounded bg-green-500/20 text-green-300 text-sm border border-green-500/30 text-center">
+                        {msg}
+                    </div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="relative">
-                        <User className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                        <Mail className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
                         <input
-                            type="text"
-                            placeholder="Username"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
+                            type="email"
+                            placeholder="Email Address"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
                             required
-                            className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                            disabled={!isLogin && otpSent}
+                            className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all disabled:opacity-50"
                         />
                     </div>
                     
@@ -71,12 +116,12 @@ export default function Auth() {
                             placeholder="Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            // required disabled standard browser form to override manually
-                            className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all"
+                            disabled={!isLogin && otpSent}
+                            className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all disabled:opacity-50"
                         />
                     </div>
 
-                    {!isLogin && (
+                    {!isLogin && !otpSent && (
                         <div className="relative">
                             <KeyRound className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
                             <select 
@@ -90,19 +135,42 @@ export default function Auth() {
                         </div>
                     )}
 
-                    <button 
-                        type="submit"
-                        className="w-full bg-accent hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors shadow-lg shadow-accent/20"
-                    >
-                        {isLogin ? 'Sign In' : 'Sign Up'}
-                    </button>
-                    
+                    {!isLogin && otpSent && (
+                        <div className="relative">
+                            <CheckCircle className="absolute left-3 top-3 text-green-400 w-5 h-5" />
+                            <input
+                                type="text"
+                                placeholder="Enter 6-digit OTP"
+                                value={otp}
+                                onChange={e => setOtp(e.target.value)}
+                                required
+                                className="w-full bg-prime/50 border border-green-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-all"
+                            />
+                        </div>
+                    )}
+
+                    {!isLogin && !otpSent ? (
+                        <button 
+                            type="button"
+                            onClick={handleSendOtp}
+                            className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-3 rounded-lg transition-colors shadow-lg shadow-purple-500/20"
+                        >
+                            Send OTP to Email
+                        </button>
+                    ) : (
+                        <button 
+                            type="submit"
+                            className="w-full bg-accent hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors shadow-lg shadow-accent/20"
+                        >
+                            {isLogin ? 'Sign In' : 'Complete Signup'}
+                        </button>
+                    )}
                 </form>
 
                 <p className="mt-6 text-center text-gray-400 text-sm">
                     {isLogin ? "Don't have an account? " : "Already have an account? "}
                     <button 
-                        onClick={() => setIsLogin(!isLogin)} 
+                        onClick={switchMode} 
                         className="text-accent hover:text-blue-400 font-medium cursor-pointer focus:outline-none"
                     >
                         {isLogin ? 'Sign up' : 'Log in'}

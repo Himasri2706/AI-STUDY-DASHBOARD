@@ -34,10 +34,10 @@ export default function Dashboard() {
             <header className="flex justify-between items-center bg-sec/60 backdrop-blur-xl border border-white/5 p-4 rounded-2xl mb-8 p-sticky top-0 z-50">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center font-bold text-lg shadow-lg shadow-accent/30">
-                        {user.username.charAt(0).toUpperCase()}
+                        {user.email.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h1 className="font-bold text-xl">Hello, {user.username}</h1>
+                        <h1 className="font-bold text-xl">Hello, {user.email}</h1>
                         <p className="text-xs text-gray-400 capitalize">{user.role}</p>
                     </div>
                 </div>

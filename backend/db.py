@@ -9,7 +9,7 @@ def init_db():
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        username TEXT UNIQUE,
+                        email TEXT UNIQUE,
                         password TEXT,
                         role TEXT)''')
                         
@@ -23,17 +23,23 @@ def init_db():
                         subject TEXT,
                         upload_date TEXT,
                         uploaded_by TEXT)''')
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS otp_codes (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        email TEXT,
+                        otp TEXT,
+                        expires_at DATETIME)''')
                         
     # Insert default admin and student automatically for the user!
     try:
         admin_pass = generate_password_hash("admin123")
-        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("AdminMaster", admin_pass, "admin"))
+        cursor.execute("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", ("admin@example.com", admin_pass, "admin"))
     except:
         pass # Already exists
         
     try:
         user_pass = generate_password_hash("student123")
-        cursor.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", ("StudentPro", user_pass, "user"))
+        cursor.execute("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", ("student@example.com", user_pass, "user"))
     except:
         pass # Already exists
 

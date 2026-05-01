@@ -15,7 +15,7 @@ export const AuthProvider = ({ children }) => {
                 if (decoded.exp * 1000 < Date.now()) {
                     logout();
                 } else {
-                    setUser({ token, role: decoded.role, username: decoded.username });
+                    setUser({ token, role: decoded.role, email: decoded.email });
                 }
             } catch (err) {
                 logout();
@@ -24,9 +24,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const login = (token, role, username) => {
+    const login = (token, role, email) => {
         localStorage.setItem('token', token);
-        setUser({ token, role, username });
+        setUser({ token, role, email });
     };
 
     const logout = () => {
