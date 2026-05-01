@@ -1,0 +1,62 @@
+{
+  "name": "AI Dashboard Auth Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "send-otp",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "e4f8d5e1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "webhookId": "send-otp-webhook"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.body.email }}",
+        "subject": "AI Study Dashboard - Verification Code",
+        "message": "Your secure login code is: {{ $json.body.otp }}",
+        "options": {}
+      },
+      "id": "7dc1a9b2",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        460,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f7d4e5f7",
+  "id": "2Mvq3Q8sP9LzX5a1",
+  "meta": {
+    "instanceId": "local"
+  },
+  "tags": []
+}

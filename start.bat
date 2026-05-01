@@ -17,10 +17,15 @@ cd ../frontend
 start "AI Study Frontend (Do not close)" cmd /c "npm install && npm run dev"
 
 echo.
+echo Starting n8n Automation Server in a new window...
+cd ..
+start "n8n Server (Do not close)" cmd /c "npx -y n8n"
+
+echo.
 echo ========================================================
-echo Done! Two new windows have opened. 
+echo Done! Three new windows have opened. 
 echo - The Backend is running on port 5000.
-echo - The Frontend is starting up. It will give you a link (like http://localhost:5173).
-echo - Hold CTRL and Click the link in the frontend window to open the app!
+echo - The Frontend is starting up on port 5173.
+echo - n8n is starting up on port 5678.
 echo ========================================================
 pause
