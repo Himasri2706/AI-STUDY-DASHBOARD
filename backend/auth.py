@@ -2,8 +2,7 @@ import os
 import datetime
 import jwt
 import random
-import smtplib
-from email.mime.text import MIMEText
+import requests
 from functools import wraps
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -12,8 +11,7 @@ from db import get_db
 auth_bp = Blueprint('auth', __name__)
 
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-default-key-please-change-in-prod")
-GMAIL_ADDRESS = os.getenv("GMAIL_ADDRESS", "")
-GMAIL_APP_PASSWORD = os.getenv("GMAIL_APP_PASSWORD", "")
+N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "")
 
 def token_required(f):
     @wraps(f)
@@ -57,27 +55,25 @@ def send_otp():
     cursor.execute("INSERT INTO otp_codes (email, otp, expires_at) VALUES (?, ?, ?)", (email, otp, expires_at))
     db.commit()
     
-    print(f"==================================================")
-    print(f"MOCK OTP SENT TO {email}: {otp}")
-    print(f"==================================================")
-    
-    # Send actual email if configured
-    if GMAIL_ADDRESS and GMAIL_APP_PASSWORD:
+    # Send to n8n webhook
+    if N8N_WEBHOOK_URL:
         try:
-            msg = MIMEText(f"Your AI Study Dashboard verification code is: {otp}")
-            msg['Subject'] = 'AI Study Dashboard - Verification Code'
-            msg['From'] = GMAIL_ADDRESS
-            msg['To'] = email
+            response = requests.post(N8N_WEBHOOK_URL, json={
+                "email": email,
+                "otp": otp
+            }, timeout=10)
             
-            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-            server.login(GMAIL_ADDRESS, GMAIL_APP_PASSWORD)
-            server.send_message(msg)
-            server.quit()
-            print("OTP emailed successfully!")
+            if response.status_code not in [200, 201, 202]:
+                print(f"n8n webhook returned status {response.status_code}")
+                return jsonify({'message': 'Failed to trigger authentication email via n8n.'}), 500
+                
         except Exception as e:
-            print(f"Failed to send email: {e}")
+            print(f"Failed to contact n8n webhook: {e}")
+            return jsonify({'message': 'Authentication service is currently unavailable.'}), 500
+    else:
+        print(f"WARNING: N8N_WEBHOOK_URL not configured! OTP is {otp}")
             
-    return jsonify({'message': 'OTP sent successfully. Check your email (or server console)'}), 200
+    return jsonify({'message': 'OTP sent successfully. Check your email.'}), 200
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
