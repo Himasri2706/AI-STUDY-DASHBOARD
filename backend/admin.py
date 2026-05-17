@@ -43,9 +43,11 @@ def upload_pdf(current_user):
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
         upload_path = os.path.join(os.path.dirname(__file__), "uploads", filename)
-        file.save(upload_path)
         
         try:
+            os.makedirs(os.path.dirname(upload_path), exist_ok=True)
+            file.save(upload_path)
+            
             # Process with RAG
             add_pdf_to_vector_db(upload_path, subject)
             
