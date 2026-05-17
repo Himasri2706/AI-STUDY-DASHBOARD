@@ -3,6 +3,9 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
+# Fix for PyTorch/FAISS OpenMP threading crashes on Windows
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+
 # Load env variables before importing modules that need them
 load_dotenv()
 
