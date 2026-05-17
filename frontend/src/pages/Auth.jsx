@@ -9,28 +9,12 @@ export default function Auth() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('user'); // For signup only
-    const [otp, setOtp] = useState('');
-    const [otpSent, setOtpSent] = useState(false);
     const [error, setError] = useState('');
     const [msg, setMsg] = useState('');
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
 
-    const handleSendOtp = async () => {
-        if (!email) {
-            setError('Please enter your email first.');
-            return;
-        }
-        setError('');
-        setMsg('');
-        try {
-            const res = await api.post('/auth/send-otp', { email });
-            setOtpSent(true);
-            setMsg(res.data.message);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to send OTP');
-        }
-    };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -47,14 +31,8 @@ export default function Auth() {
                     navigate('/');
                 }
             } else {
-                if (!otpSent) {
-                    setError('Please verify your email first.');
-                    return;
-                }
-                await api.post('/auth/signup', { email, password, role, otp });
+                await api.post('/auth/signup', { email, password, role });
                 setIsLogin(true);
-                setOtpSent(false);
-                setOtp('');
                 setMsg('Signup successful! Please login.');
             }
         } catch (err) {
@@ -66,8 +44,6 @@ export default function Auth() {
         setIsLogin(!isLogin);
         setError('');
         setMsg('');
-        setOtpSent(false);
-        setOtp('');
     };
 
     return (
@@ -104,7 +80,6 @@ export default function Auth() {
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             required
-                            disabled={!isLogin && otpSent}
                             className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all disabled:opacity-50"
                         />
                     </div>
@@ -116,12 +91,11 @@ export default function Auth() {
                             placeholder="Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            disabled={!isLogin && otpSent}
                             className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all disabled:opacity-50"
                         />
                     </div>
 
-                    {!isLogin && !otpSent && (
+                    {!isLogin && (
                         <div className="relative">
                             <KeyRound className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
                             <select 
@@ -135,36 +109,12 @@ export default function Auth() {
                         </div>
                     )}
 
-                    {!isLogin && otpSent && (
-                        <div className="relative">
-                            <CheckCircle className="absolute left-3 top-3 text-green-400 w-5 h-5" />
-                            <input
-                                type="text"
-                                placeholder="Enter 6-digit OTP"
-                                value={otp}
-                                onChange={e => setOtp(e.target.value)}
-                                required
-                                className="w-full bg-prime/50 border border-green-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-green-400 focus:ring-1 focus:ring-green-400 transition-all"
-                            />
-                        </div>
-                    )}
-
-                    {!isLogin && !otpSent ? (
-                        <button 
-                            type="button"
-                            onClick={handleSendOtp}
-                            className="w-full bg-purple-600 hover:bg-purple-500 text-white font-medium py-3 rounded-lg transition-colors shadow-lg shadow-purple-500/20"
-                        >
-                            Send OTP to Email
-                        </button>
-                    ) : (
-                        <button 
-                            type="submit"
-                            className="w-full bg-accent hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors shadow-lg shadow-accent/20"
-                        >
-                            {isLogin ? 'Sign In' : 'Complete Signup'}
-                        </button>
-                    )}
+                    <button 
+                        type="submit"
+                        className="w-full bg-accent hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors shadow-lg shadow-accent/20"
+                    >
+                        {isLogin ? 'Sign In' : 'Complete Signup'}
+                    </button>
                 </form>
 
                 <p className="mt-6 text-center text-gray-400 text-sm">
@@ -176,6 +126,23 @@ export default function Auth() {
                         {isLogin ? 'Sign up' : 'Log in'}
                     </button>
                 </p>
+
+                {/* Predefined Test Credentials Helper */}
+                {isLogin && (
+                    <div className="mt-8 p-4 bg-prime/50 rounded-lg border border-gray-700/50">
+                        <p className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider">Test Credentials</p>
+                        <div className="space-y-2 text-sm text-gray-300">
+                            <div className="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                                <div><span className="font-medium text-accent">Admin:</span> admin@example.com</div>
+                                <div className="text-gray-400">admin123</div>
+                            </div>
+                            <div className="flex justify-between items-center pt-1">
+                                <div><span className="font-medium text-purple-400">Student:</span> student@example.com</div>
+                                <div className="text-gray-400">student123</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

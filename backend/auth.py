@@ -11,7 +11,7 @@ from db import get_db
 auth_bp = Blueprint('auth', __name__)
 
 JWT_SECRET = os.getenv("JWT_SECRET", "super-secret-default-key-please-change-in-prod")
-N8N_WEBHOOK_URL = os.getenv("N8N_WEBHOOK_URL", "")
+
 
 def token_required(f):
     @wraps(f)
@@ -34,46 +34,7 @@ def token_required(f):
         return f(current_user, *args, **kwargs)
     return decorated
 
-@auth_bp.route('/send-otp', methods=['POST'])
-def send_otp():
-    data = request.get_json()
-    email = data.get('email')
-    
-    if not email:
-        return jsonify({'message': 'Email is required'}), 400
-        
-    db = get_db()
-    cursor = db.cursor()
-    user = cursor.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    if user:
-        return jsonify({'message': 'User with this email already exists'}), 400
 
-    otp = str(random.randint(100000, 999999))
-    expires_at = datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
-    
-    # Store OTP in DB
-    cursor.execute("INSERT INTO otp_codes (email, otp, expires_at) VALUES (?, ?, ?)", (email, otp, expires_at))
-    db.commit()
-    
-    # Send to n8n webhook
-    if N8N_WEBHOOK_URL:
-        try:
-            response = requests.post(N8N_WEBHOOK_URL, json={
-                "email": email,
-                "otp": otp
-            }, timeout=10)
-            
-            if response.status_code not in [200, 201, 202]:
-                print(f"n8n webhook returned status {response.status_code}")
-                return jsonify({'message': 'Failed to trigger authentication email via n8n.'}), 500
-                
-        except Exception as e:
-            print(f"Failed to contact n8n webhook: {e}")
-            return jsonify({'message': 'Authentication service is currently unavailable.'}), 500
-    else:
-        print(f"WARNING: N8N_WEBHOOK_URL not configured! OTP is {otp}")
-            
-    return jsonify({'message': 'OTP sent successfully. Check your email.'}), 200
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
@@ -81,21 +42,12 @@ def signup():
     email = data.get('email')
     password = data.get('password')
     role = data.get('role', 'user')
-    otp = data.get('otp')
 
-    if not email or not password or not otp:
+    if not email or not password:
         return jsonify({'message': 'Missing data'}), 400
 
     db = get_db()
     cursor = db.cursor()
-    
-    # Verify OTP
-    otp_record = cursor.execute("SELECT * FROM otp_codes WHERE email = ? ORDER BY id DESC LIMIT 1", (email,)).fetchone()
-    if not otp_record or otp_record['otp'] != str(otp):
-        return jsonify({'message': 'Invalid OTP'}), 400
-        
-    if datetime.datetime.strptime(otp_record['expires_at'], "%Y-%m-%d %H:%M:%S.%f") < datetime.datetime.utcnow():
-        return jsonify({'message': 'OTP expired'}), 400
 
     user = cursor.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
     if user:

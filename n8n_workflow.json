@@ -20,14 +20,15 @@
     },
     {
       "parameters": {
-        "sendTo": "={{ $json.body.email }}",
+        "fromEmail": "your-email@gmail.com",
+        "toEmail": "={{ $json.body.email }}",
         "subject": "AI Study Dashboard - Verification Code",
-        "message": "Your secure login code is: {{ $json.body.otp }}",
+        "text": "Your secure login code is: {{ $json.body.otp }}",
         "options": {}
       },
-      "id": "7dc1a9b2",
+      "id": "1a2b3c4d",
       "name": "Send Email",
-      "type": "n8n-nodes-base.gmail",
+      "type": "n8n-nodes-base.emailSend",
       "typeVersion": 2.1,
       "position": [
         460,
@@ -53,8 +54,8 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "f7d4e5f7",
-  "id": "2Mvq3Q8sP9LzX5a1",
+  "versionId": "f7d4e5f8",
+  "id": "2Mvq3Q8sP9LzX5a2",
   "meta": {
     "instanceId": "local"
   },
