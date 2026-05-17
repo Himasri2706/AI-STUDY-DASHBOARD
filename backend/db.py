@@ -31,17 +31,17 @@ def init_db():
                         expires_at DATETIME)''')
                         
     # Insert default admin and student automatically for the user!
+    admin_pass = generate_password_hash("admin123")
     try:
-        admin_pass = generate_password_hash("admin123")
         cursor.execute("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", ("admin@example.com", admin_pass, "admin"))
     except:
-        pass # Already exists
+        cursor.execute("UPDATE users SET password = ? WHERE email = ?", (admin_pass, "admin@example.com"))
         
+    user_pass = generate_password_hash("student123")
     try:
-        user_pass = generate_password_hash("student123")
         cursor.execute("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", ("student@example.com", user_pass, "user"))
     except:
-        pass # Already exists
+        cursor.execute("UPDATE users SET password = ? WHERE email = ?", (user_pass, "student@example.com"))
 
     conn.commit()
     conn.close()
