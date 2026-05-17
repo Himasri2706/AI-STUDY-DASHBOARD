@@ -53,7 +53,7 @@ def upload_pdf(current_user):
             db = get_db()
             cursor = db.cursor()
             cursor.execute("INSERT INTO documents (filename, subject, upload_date, uploaded_by) VALUES (?, ?, ?, ?)", 
-                           (filename, subject, str(datetime.datetime.utcnow()), current_user['username']))
+                           (filename, subject, str(datetime.datetime.utcnow()), current_user.get('email', 'admin')))
             cursor.execute("INSERT OR IGNORE INTO subjects (name) VALUES (?)", (subject,))
             db.commit()
                 
