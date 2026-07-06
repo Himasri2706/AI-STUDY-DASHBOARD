@@ -37,6 +37,11 @@ def create_app():
     def health_check():
         return jsonify({"status": "running", "service": "AI Study Dashboard API"})
 
+    @app.route('/uploads/<path:filename>')
+    def serve_uploads(filename):
+        from flask import send_from_directory
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
     return app
 
 import os

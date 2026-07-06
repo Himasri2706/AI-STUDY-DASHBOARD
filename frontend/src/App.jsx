@@ -6,7 +6,7 @@ import AdminPanel from './pages/AdminPanel';
 import Dashboard from './pages/Dashboard';
 import ChatInterface from './pages/ChatInterface';
 
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
+const ProtectedRoute = ({ children, requireAdmin = false, requireTeacherOrAdmin = false }) => {
     const { user, loading } = useContext(AuthContext);
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-accent">Loading...</div>;
@@ -14,6 +14,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     if (!user) return <Navigate to="/auth" />;
     
     if (requireAdmin && user.role !== 'admin') return <Navigate to="/" />;
+    
+    if (requireTeacherOrAdmin && !['admin', 'teacher'].includes(user.role)) return <Navigate to="/" />;
 
     return children;
 };
@@ -24,7 +26,7 @@ function AppRoutes() {
             <Route path="/auth" element={<Auth />} />
             
             <Route path="/admin" element={
-                <ProtectedRoute requireAdmin={true}>
+                <ProtectedRoute requireTeacherOrAdmin={true}>
                     <AdminPanel />
                 </ProtectedRoute>
             } />

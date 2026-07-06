@@ -11,7 +11,9 @@ def init_db():
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         email TEXT UNIQUE,
                         password TEXT,
-                        role TEXT)''')
+                        role TEXT,
+                        branch TEXT,
+                        year INTEGER)''')
                         
     cursor.execute('''CREATE TABLE IF NOT EXISTS subjects (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,6 +23,8 @@ def init_db():
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         filename TEXT,
                         subject TEXT,
+                        branch TEXT,
+                        year INTEGER,
                         upload_date TEXT,
                         uploaded_by TEXT)''')
 
@@ -29,6 +33,19 @@ def init_db():
                         email TEXT,
                         otp TEXT,
                         expires_at DATETIME)''')
+
+    # Graceful migrations for existing DBs
+    try:
+        cursor.execute("ALTER TABLE users ADD COLUMN branch TEXT")
+        cursor.execute("ALTER TABLE users ADD COLUMN year INTEGER")
+    except:
+        pass
+        
+    try:
+        cursor.execute("ALTER TABLE documents ADD COLUMN branch TEXT")
+        cursor.execute("ALTER TABLE documents ADD COLUMN year INTEGER")
+    except:
+        pass
                         
     # Insert default admin and student automatically for the user!
     admin_pass = generate_password_hash("admin123")

@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
+  --font-sans: 'Outfit', sans-serif;
   --color-prime: #0f172a;
   --color-sec: #1e293b;
   --color-accent: #3b82f6;
@@ -27,4 +29,30 @@
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #3b82f6;
   border-radius: 20px;
+}
+
+/* Markdown Rendering Styles */
+.markdown-content p {
+  @apply mb-3 last:mb-0;
+}
+.markdown-content strong {
+  @apply text-gray-100 font-semibold;
+}
+.markdown-content ul {
+  @apply list-disc list-inside space-y-1.5 mb-4 pl-1 text-gray-200;
+}
+.markdown-content ol {
+  @apply list-decimal list-inside space-y-1.5 mb-4 pl-1 text-gray-200;
+}
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  @apply font-bold text-white mb-2 mt-4 first:mt-0;
+}
+.markdown-content code {
+  @apply bg-black/30 border border-white/5 px-1.5 py-0.5 rounded text-accent font-mono text-sm;
+}
+.markdown-content pre {
+  @apply bg-black/40 border border-white/10 p-3 rounded-lg overflow-x-auto mb-4;
+}
+.markdown-content pre code {
+  @apply bg-transparent border-0 p-0 text-gray-300;
 }

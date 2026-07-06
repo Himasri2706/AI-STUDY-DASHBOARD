@@ -15,7 +15,13 @@ export const AuthProvider = ({ children }) => {
                 if (decoded.exp * 1000 < Date.now()) {
                     logout();
                 } else {
-                    setUser({ token, role: decoded.role, email: decoded.email });
+                    setUser({ 
+                        token, 
+                        role: decoded.role, 
+                        email: decoded.email,
+                        branch: decoded.branch,
+                        year: decoded.year
+                    });
                 }
             } catch (err) {
                 logout();
@@ -24,9 +30,9 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const login = (token, role, email) => {
+    const login = (token, role, email, branch, year) => {
         localStorage.setItem('token', token);
-        setUser({ token, role, email });
+        setUser({ token, role, email, branch, year });
     };
 
     const logout = () => {

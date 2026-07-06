@@ -1,148 +1,142 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Lock, Mail, KeyRound, CheckCircle } from 'lucide-react';
+import { Lock, Mail, Bot } from 'lucide-react';
 import api from '../api';
 import { AuthContext } from '../context/AuthContext';
 
+const BRANCHES = ['CSE', 'CSE(AIML)', 'CSE(DS)', 'IT', 'ECE', 'MECH', 'CIVIL', 'EEE'];
+const YEARS = ['1', '2', '3', '4'];
+
 export default function Auth() {
-    const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [role, setRole] = useState('user'); // For signup only
+    const [role, setRole] = useState('user');
+    const [branch, setBranch] = useState(BRANCHES[0]);
+    const [year, setYear] = useState(YEARS[0]);
+    
     const [error, setError] = useState('');
-    const [msg, setMsg] = useState('');
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
-
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        setMsg('');
         try {
-            if (isLogin) {
-                const res = await api.post('/auth/login', { email, password });
-                login(res.data.token, res.data.role, res.data.email);
-                
-                if (res.data.role === 'admin') {
-                    navigate('/admin');
-                } else {
-                    navigate('/');
-                }
+            const payload = { email, password, role };
+            if (role === 'user' || role === 'teacher') {
+                payload.branch = branch;
+            }
+            if (role === 'user') {
+                payload.year = year;
+            }
+            
+            const res = await api.post('/auth/login', payload);
+            // Save token, role, email, branch, and year
+            login(res.data.token, res.data.role, res.data.email, res.data.branch, res.data.year);
+            
+            if (res.data.role === 'admin' || res.data.role === 'teacher') {
+                navigate('/admin');
             } else {
-                await api.post('/auth/signup', { email, password, role });
-                setIsLogin(true);
-                setMsg('Signup successful! Please login.');
+                navigate('/');
             }
         } catch (err) {
             setError(err.response?.data?.message || 'Authentication failed');
         }
     };
 
-    const switchMode = () => {
-        setIsLogin(!isLogin);
-        setError('');
-        setMsg('');
-    };
-
     return (
-        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-prime via-sec to-prime">
-            {/* Background elements */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-accent/20 rounded-full blur-[100px]" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[100px]" />
+        <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-prime p-4">
+            {/* Ambient Background Glows matching ChatInterface */}
+            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-accent/10 blur-[120px] pointer-events-none"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-600/10 blur-[100px] pointer-events-none"></div>
 
-            <div className="glass p-8 rounded-2xl w-full max-w-md z-10 mx-4 border border-white/20 shadow-2xl relative shadow-accent/10">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold bg-gradient-to-r from-accent to-purple-400 bg-clip-text text-transparent">
-                        AI Study Dashboard
+            <div className="glass p-8 md:p-10 rounded-3xl w-full max-w-md z-10 border border-white/10 shadow-2xl relative shadow-[0_0_50px_rgba(59,130,246,0.1)] backdrop-blur-xl bg-sec/60 animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <div className="text-center mb-8 flex flex-col items-center">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-b from-sec to-prime flex items-center justify-center border border-white/10 shadow-xl mb-6 relative">
+                        <Bot className="w-8 h-8 text-accent relative z-10" />
+                        <div className="absolute inset-0 bg-accent/30 blur-md rounded-full animate-pulse"></div>
+                    </div>
+                    <h2 className="text-4xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent tracking-tight">
+                        Institutional Portal
                     </h2>
-                    <p className="text-gray-400 mt-2">{isLogin ? 'Welcome back, Scholar' : 'Begin your journey'}</p>
+                    <p className="text-gray-400 mt-2 text-sm font-light">Secure Login</p>
                 </div>
 
                 {error && (
-                    <div className="mb-4 p-3 rounded bg-red-500/20 text-red-300 text-sm border border-red-500/30 text-center">
+                    <div className="mb-6 p-4 rounded-xl bg-red-500/10 text-red-400 text-sm border border-red-500/20 text-center animate-in fade-in">
                         {error}
-                    </div>
-                )}
-                {msg && (
-                    <div className="mb-4 p-3 rounded bg-green-500/20 text-green-300 text-sm border border-green-500/30 text-center">
-                        {msg}
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="relative">
-                        <Mail className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                    <div className="relative group">
+                        <select
+                            value={role}
+                            onChange={e => setRole(e.target.value)}
+                            className="w-full bg-prime/80 border border-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner appearance-none cursor-pointer"
+                        >
+                            <option value="user">Student Portal</option>
+                            <option value="teacher">Teacher Portal</option>
+                            <option value="admin">Administrator</option>
+                        </select>
+                    </div>
+
+                    {(role === 'user' || role === 'teacher') && (
+                        <div className="flex gap-4">
+                            <div className="relative group flex-1">
+                                <select
+                                    value={branch}
+                                    onChange={e => setBranch(e.target.value)}
+                                    className="w-full bg-prime/80 border border-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner appearance-none cursor-pointer"
+                                >
+                                    {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
+                                </select>
+                            </div>
+                            {role === 'user' && (
+                                <div className="relative group w-32">
+                                    <select
+                                        value={year}
+                                        onChange={e => setYear(e.target.value)}
+                                        className="w-full bg-prime/80 border border-gray-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner appearance-none cursor-pointer"
+                                    >
+                                        {YEARS.map(y => <option key={y} value={y}>Year {y}</option>)}
+                                    </select>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="relative group">
+                        <Mail className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-accent transition-colors w-5 h-5" />
                         <input
                             type="email"
                             placeholder="Email Address"
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             required
-                            className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all disabled:opacity-50"
+                            className="w-full bg-prime/80 border border-gray-700 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner placeholder-gray-500"
                         />
                     </div>
                     
-                    <div className="relative">
-                        <Lock className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+                    <div className="relative group">
+                        <Lock className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-accent transition-colors w-5 h-5" />
                         <input
                             type="password"
                             placeholder="Password"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all disabled:opacity-50"
+                            required
+                            className="w-full bg-prime/80 border border-gray-700 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all shadow-inner placeholder-gray-500"
                         />
                     </div>
 
-                    {!isLogin && (
-                        <div className="relative">
-                            <KeyRound className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
-                            <select 
-                                value={role} 
-                                onChange={e => setRole(e.target.value)}
-                                className="w-full bg-prime/50 border border-gray-600 rounded-lg py-2.5 pl-10 pr-4 text-white focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-all appearance-none"
-                            >
-                                <option value="user">Student (User)</option>
-                                <option value="admin">Administrator</option>
-                            </select>
-                        </div>
-                    )}
-
                     <button 
                         type="submit"
-                        className="w-full bg-accent hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors shadow-lg shadow-accent/20"
+                        className="w-full bg-gradient-to-r from-accent to-blue-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-accent/20 mt-4"
                     >
-                        {isLogin ? 'Sign In' : 'Complete Signup'}
+                        Sign In
                     </button>
                 </form>
-
-                <p className="mt-6 text-center text-gray-400 text-sm">
-                    {isLogin ? "Don't have an account? " : "Already have an account? "}
-                    <button 
-                        onClick={switchMode} 
-                        className="text-accent hover:text-blue-400 font-medium cursor-pointer focus:outline-none"
-                    >
-                        {isLogin ? 'Sign up' : 'Log in'}
-                    </button>
-                </p>
-
-                {/* Predefined Test Credentials Helper */}
-                {isLogin && (
-                    <div className="mt-8 p-4 bg-prime/50 rounded-lg border border-gray-700/50">
-                        <p className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider">Test Credentials</p>
-                        <div className="space-y-2 text-sm text-gray-300">
-                            <div className="flex justify-between items-center pb-2 border-b border-gray-700/50">
-                                <div><span className="font-medium text-accent">Admin:</span> admin@example.com</div>
-                                <div className="text-gray-400">admin123</div>
-                            </div>
-                            <div className="flex justify-between items-center pt-1">
-                                <div><span className="font-medium text-purple-400">Student:</span> student@example.com</div>
-                                <div className="text-gray-400">student123</div>
-                            </div>
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );

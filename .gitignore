@@ -5,6 +5,7 @@ frontend/dist/
 # Python
 backend/__pycache__/
 backend/database.db
+backend/study_dashboard.db
 
 # Secrets
 backend/.env

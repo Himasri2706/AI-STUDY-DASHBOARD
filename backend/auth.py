@@ -36,34 +36,14 @@ def token_required(f):
 
 
 
-@auth_bp.route('/signup', methods=['POST'])
-def signup():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-    role = data.get('role', 'user')
-
-    if not email or not password:
-        return jsonify({'message': 'Missing data'}), 400
-
-    db = get_db()
-    cursor = db.cursor()
-
-    user = cursor.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    if user:
-        return jsonify({'message': 'User already exists'}), 400
-
-    hashed_password = generate_password_hash(password)
-    cursor.execute("INSERT INTO users (email, password, role) VALUES (?, ?, ?)", (email, hashed_password, role))
-    db.commit()
-
-    return jsonify({'message': 'User created successfully'}), 201
-
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
+    role = data.get('role')
+    branch = data.get('branch')
+    year = data.get('year')
 
     db = get_db()
     cursor = db.cursor()
@@ -72,11 +52,39 @@ def login():
     if not user or not check_password_hash(user['password'], password):
         return jsonify({'message': 'Invalid credentials'}), 401
 
+    # Verify role
+    if user['role'] != role:
+        return jsonify({'message': f'Account is not registered as a {role}.'}), 401
+
+    # Extract institutional fields from DB
+    user_branch = user['branch'] if 'branch' in user.keys() else None
+    user_year = str(user['year']) if 'year' in user.keys() and user['year'] is not None else None
+
+    # Verify branch and year if provided
+    if role in ['user', 'teacher']:
+        if user_branch and branch and user_branch != branch:
+            return jsonify({'message': f'Account is not registered in branch {branch}.'}), 401
+        if user_year and year:
+            if role == 'teacher':
+                import json
+                try:
+                    assigned_years = json.loads(user_year)
+                    if str(year) not in assigned_years:
+                        return jsonify({'message': f'Account is not registered in year {year}.'}), 401
+                except Exception:
+                    if user_year != str(year):
+                        return jsonify({'message': f'Account is not registered in year {year}.'}), 401
+            else:
+                if user_year != str(year):
+                    return jsonify({'message': f'Account is not registered in year {year}.'}), 401
+
     token = jwt.encode({
         'user_id': user['id'],
         'email': user['email'],
         'role': user['role'],
+        'branch': user_branch,
+        'year': user_year,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
     }, JWT_SECRET, algorithm="HS256")
 
-    return jsonify({'token': token, 'role': user['role'], 'email': user['email']}), 200
+    return jsonify({'token': token, 'role': user['role'], 'email': user['email'], 'branch': user_branch, 'year': user_year}), 200
