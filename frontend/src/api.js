@@ -3,6 +3,10 @@ import axios from 'axios';
 const api = axios.create({
     // Uses the Vercel environment variable in production, falls back to localhost for local testing
     baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000',
+    headers: {
+        'ngrok-skip-browser-warning': 'true',
+        'Bypass-Tunnel-Reminder': 'true'
+    }
 });
 
 // Interceptor to add JWT token
